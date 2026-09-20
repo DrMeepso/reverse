@@ -50,3 +50,41 @@ python /home/runner/work/reverse/reverse/tools/deobfuscate_stage1.py \
 Next stage after this output:
 - Resolve dynamic `de[...]` global lookups using decoded strings.
 - Name VM fields/tables and split state-machine blocks into logical opcode handlers.
+
+## Stage 2: extract VM assets (opcode table + payload)
+
+Added static extractor:
+- `/home/runner/work/reverse/reverse/tools/extract_vm_assets.py`
+
+It reads `partially_deobfuscated.lua` and emits:
+- `opcode_table.json` (256 opcode descriptor entries from `[60343]`)
+- `payload.bin` (decoded bytes from `Gb(Fe'...')`)
+- `vm_assets.json` (manifest + payload hash/stats)
+
+Example:
+
+```bash
+python /home/runner/work/reverse/reverse/tools/extract_vm_assets.py \
+  /tmp/deobf_stage1/partially_deobfuscated.lua \
+  --output-dir /tmp/vm_assets
+```
+
+## Stage 3: bytecode-equivalent reconstruction
+
+Added reconstruction tool:
+- `/home/runner/work/reverse/reverse/tools/reconstruct_from_bytecode_eqv.py`
+
+It maps every payload byte through the 256-entry VM opcode descriptor table and outputs a
+bytecode-equivalent IR/listing:
+- `bytecode_eqv.jsonl`
+- `reconstructed_eqv.lua`
+- `ir_summary.json`
+
+Example:
+
+```bash
+python /home/runner/work/reverse/reverse/tools/reconstruct_from_bytecode_eqv.py \
+  /tmp/vm_assets/payload.bin \
+  /tmp/vm_assets/opcode_table.json \
+  --output-dir /tmp/bytecode_eqv
+```
