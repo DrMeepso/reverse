@@ -27,3 +27,26 @@ This is a staged obfuscated loader designed to prevent static signatures and exp
 ### Confidence
 - High confidence on architecture (decoder + loader + VM wrapper).
 - Medium confidence on final payload actions (hidden by VM layer).
+
+## Begin proper deobfuscation (stage 1)
+
+Added static tooling:
+- `/home/runner/work/reverse/reverse/tools/deobfuscate_stage1.py`
+
+What it does:
+- Parses and decodes `sf(<encoded>, <key>)` calls from the obfuscated Lua source.
+- Produces:
+  - `sf_mappings.json` (decoded string mapping data)
+  - `partially_deobfuscated.lua` (same source with `sf(...)` replaced by decoded string literals)
+
+Example:
+
+```bash
+python /home/runner/work/reverse/reverse/tools/deobfuscate_stage1.py \
+  /tmp/Jailbird_Main.lua \
+  --output-dir /tmp/deobf_stage1
+```
+
+Next stage after this output:
+- Resolve dynamic `de[...]` global lookups using decoded strings.
+- Name VM fields/tables and split state-machine blocks into logical opcode handlers.
